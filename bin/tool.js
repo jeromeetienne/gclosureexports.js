@@ -17,24 +17,37 @@ while(true){
 	break;
 }
 
+var window = {};
+
 // include the gclosureexports library itself
 var gclosureStr	= require('fs').readFileSync(__dirname+'/../gclosureexports.js', 'utf8');
-eval(gclosureStr)
-
-// include js_code
 var jscodeStr	= require('fs').readFileSync(jscodeFname, 'utf8');
-eval(jscodeStr)
-
-// include js_code exports for gclosureexports
 var exportsStr	= require('fs').readFileSync(exportsFname, 'utf8');
-eval(exportsStr)
 
-// dump it in google closure compiler format
-if( dumpJscode )	console.log(jscodeStr);
+var codeStr	= "";
+codeStr		+= [
+	"",
+	"window = {};",
+	""
+].join('\n');
+codeStr		+= gclosureStr + jscodeStr + exportsStr;
+codeStr		+= [
+	"",
+	"gclosureExports.dump();",
+	""
+].join('\n');
 
-// dump it in google closure compiler format
-if( dumpExports )	gclosureExports.dump();
 
+var tempfile	= "slota.tmp.js";
+require('fs').writeFileSync(tempfile, codeStr, 'utf8')
+
+
+require('child_process').exec('node '+tempfile, function (error, stdout, stderr){
+	// dump it in google closure compiler format
+	if( dumpJscode )	console.log(jscodeStr);
+	// dump the exports
+	if( dumpExports )	console.log(stdout)
+})
 
 
 
